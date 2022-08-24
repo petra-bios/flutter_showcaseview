@@ -24,8 +24,6 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:showcaseview/get_position.dart';
 import 'package:showcaseview/measure_size.dart';
@@ -48,6 +46,7 @@ class ToolTipWidget extends StatefulWidget {
   static bool isArrowUp;
   final VoidCallback onTooltipTap;
   final EdgeInsets contentPadding;
+  final String bypassPosition;
 
   ToolTipWidget(
       {this.position,
@@ -65,7 +64,8 @@ class ToolTipWidget extends StatefulWidget {
       this.contentHeight,
       this.contentWidth,
       this.onTooltipTap,
-      this.contentPadding});
+      this.contentPadding,
+      this.bypassPosition});
 
   @override
   _ToolTipWidgetState createState() => _ToolTipWidgetState();
@@ -81,6 +81,9 @@ class _ToolTipWidgetState extends State<ToolTipWidget> {
   }
 
   String findPositionForContent(Offset position) {
+    if(widget.bypassPosition != null){
+      return widget.bypassPosition;
+    }
     if (isCloseToTopOrBottom(position)) {
       return 'ABOVE';
     } else {
@@ -91,11 +94,10 @@ class _ToolTipWidgetState extends State<ToolTipWidget> {
   double _getTooltipWidth() {
     double titleLength = widget.title == null ? 0 : widget.title.length * 10.0;
     double descriptionLength = widget.description.length * 7.0;
-    var maxTextWidth = max(titleLength, descriptionLength);
-    if (maxTextWidth > widget.screenSize.width - 20) {
-      return widget.screenSize.width - 20;
+    if (titleLength > descriptionLength) {
+      return titleLength + 10;
     } else {
-      return maxTextWidth + 15;
+      return descriptionLength + 10;
     }
   }
 

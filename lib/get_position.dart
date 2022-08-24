@@ -28,8 +28,9 @@ import 'package:flutter/material.dart';
 
 class GetPosition {
   final GlobalKey key;
+  final double height;
 
-  GetPosition({this.key});
+  GetPosition({this.key, this.height = 0});
 
   Rect getRect() {
     RenderBox box = key.currentContext.findRenderObject();
@@ -37,12 +38,16 @@ class GetPosition {
     final topLeft = box.size.topLeft(box.localToGlobal(const Offset(0.0, 0.0)));
     final bottomRight =
         box.size.bottomRight(box.localToGlobal(const Offset(0.0, 0.0)));
+    double bottomRightHeight = bottomRight.dy;
+    if (this.height > 0) {
+      bottomRightHeight += this.height;
+    }
 
     Rect rect = Rect.fromLTRB(
       topLeft.dx,
       topLeft.dy,
       bottomRight.dx,
-      bottomRight.dy,
+      bottomRightHeight,
     );
     return rect;
   }

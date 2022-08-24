@@ -29,6 +29,8 @@ class Showcase extends StatefulWidget {
   final VoidCallback onTargetClick;
   final bool disposeOnTap;
   final bool disableAnimation;
+  final double bypassContentHeight;
+  final String bypassPosition;
 
   const Showcase({
     @required this.key,
@@ -49,6 +51,8 @@ class Showcase extends StatefulWidget {
     this.disableAnimation = false,
     this.contentPadding = const EdgeInsets.symmetric(vertical: 8),
     this.onToolTipClick,
+    this.bypassContentHeight = 0,
+    this.bypassPosition
   })  : height = null,
         width = null,
         container = null,
@@ -78,27 +82,29 @@ class Showcase extends StatefulWidget {
             shapeBorder != null ||
             animationDuration != null);
 
-  const Showcase.withWidget(
-      {this.key,
-      @required this.child,
-      @required this.container,
-      @required this.height,
-      @required this.width,
-      this.title,
-      this.description,
-      this.shapeBorder,
-      this.overlayColor = Colors.black,
-      this.overlayOpacity = 0.75,
-      this.titleTextStyle,
-      this.descTextStyle,
-      this.showcaseBackgroundColor = Colors.white,
-      this.textColor = Colors.black,
-      this.onTargetClick,
-      this.disposeOnTap,
-      this.animationDuration = const Duration(milliseconds: 2000),
-      this.disableAnimation = false,
-      this.contentPadding = const EdgeInsets.symmetric(vertical: 8)})
-      : this.showArrow = false,
+  const Showcase.withWidget({
+    this.key,
+    @required this.child,
+    @required this.container,
+    @required this.height,
+    @required this.width,
+    this.title,
+    this.description,
+    this.shapeBorder,
+    this.overlayColor = Colors.black,
+    this.overlayOpacity = 0.75,
+    this.titleTextStyle,
+    this.descTextStyle,
+    this.showcaseBackgroundColor = Colors.white,
+    this.textColor = Colors.black,
+    this.onTargetClick,
+    this.disposeOnTap,
+    this.animationDuration = const Duration(milliseconds: 2000),
+    this.disableAnimation = false,
+    this.contentPadding = const EdgeInsets.symmetric(vertical: 8),
+    this.bypassContentHeight = 0,
+    this.bypassPosition
+  })  : this.showArrow = false,
         this.onToolTipClick = null,
         assert(overlayOpacity >= 0.0 && overlayOpacity <= 1.0,
             "overlay opacity should be >= 0.0 and <= 1.0."),
@@ -149,7 +155,7 @@ class _ShowcaseState extends State<Showcase> with TickerProviderStateMixin {
       curve: Curves.easeInOut,
     );
 
-    position = GetPosition(key: widget.key);
+    position = GetPosition(key: widget.key, height: widget.bypassContentHeight);
   }
 
   @override
@@ -197,7 +203,7 @@ class _ShowcaseState extends State<Showcase> with TickerProviderStateMixin {
     );
   }
 
-  void _nextIfAny() {
+  _nextIfAny() {
     if (timer != null && timer.isActive) {
       if (ShowCaseWidget.of(context).autoPlayLockEnable) {
         return;
@@ -212,20 +218,19 @@ class _ShowcaseState extends State<Showcase> with TickerProviderStateMixin {
     }
   }
 
-  void _getOnTargetTap() {
+  _getOnTooltipTap() {
     if (widget.disposeOnTap == true) {
-      ShowCaseWidget.of(context).dismiss();
-      widget.onTargetClick();
+      return widget.onToolTipClick == null
+          ? () {
+              ShowCaseWidget.of(context).dismiss();
+            }
+          : () {
+              ShowCaseWidget.of(context).dismiss();
+              widget.onToolTipClick();
+            };
     } else {
-      (widget.onTargetClick ?? _nextIfAny)?.call();
+      return widget.onToolTipClick ?? () {};
     }
-  }
-
-  void _getOnTooltipTap() {
-    if (widget.disposeOnTap == true) {
-      ShowCaseWidget.of(context).dismiss();
-    }
-    widget.onToolTipClick?.call();
   }
 
   buildOverlayOnTarget(
@@ -257,7 +262,7 @@ class _ShowcaseState extends State<Showcase> with TickerProviderStateMixin {
             _TargetWidget(
               offset: offset,
               size: size,
-              onTap: _getOnTargetTap,
+              onTap: _nextIfAny,
               shapeBorder: widget.shapeBorder,
             ),
             ToolTipWidget(
@@ -275,8 +280,9 @@ class _ShowcaseState extends State<Showcase> with TickerProviderStateMixin {
               showArrow: widget.showArrow,
               contentHeight: widget.height,
               contentWidth: widget.width,
-              onTooltipTap: _getOnTooltipTap,
+              onTooltipTap: _getOnTooltipTap(),
               contentPadding: widget.contentPadding,
+              bypassPosition: widget.bypassPosition,
             ),
           ],
         ),
